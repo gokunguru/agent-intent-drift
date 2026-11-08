@@ -1,6 +1,8 @@
-# Temporal Drift Experiment
+# Agent Intent Drift
 
-Does a time-bound constraint survive a chain of agent handoffs?
+Does a multi-agent pipeline preserve the original intent across handoffs?
+
+First scenario: **temporal drift**. Does a time-bound constraint survive a chain of agent handoffs?
 
 A change request asks for temporary SSH access to a core router during a
 maintenance window, then a revert:
@@ -84,3 +86,7 @@ python -m scoring.score_run tests/fixtures/run_drift
 - [ ] MAS-Lab spec for the 5 agents
 - [ ] Pilot
 - [ ] Campaign and results
+
+## License
+
+MIT. See [LICENSE](LICENSE).

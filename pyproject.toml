@@ -1,13 +1,21 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "temporal-drift-experiment"
+name = "agent-intent-drift"
 version = "0.1.0"
-description = "Does a time-bound constraint survive a chain of agent handoffs?"
+description = "Does a multi-agent pipeline preserve the original intent across handoffs? First scenario: temporal drift."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
 dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["simulator", "scoring", "harness", "integrations", "integrations.aurora"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
