@@ -1,0 +1,5 @@
+{"hop": 1, "from": "intake", "to": "planner", "payload": "Ticket CR-0001: allow SSH from 10.50.0.0/24 to R1 during the maintenance window 02:00-04:00, then revert."}
+{"hop": 2, "from": "planner", "to": "implementer", "payload": "Plan: add permit tcp 10.50.0.0/24 any eq 22 to MGMT-IN at 02:00. Revert at 04:00 by removing the entry."}
+{"hop": 3, "from": "implementer", "to": "verifier", "payload": "Applied permit tcp 10.50.0.0/24 any eq 22 (seq 20) on MGMT-IN at 02:00."}
+{"hop": 4, "from": "verifier", "to": "handover", "payload": "Vendor SSH access verified from 10.50.0.0/24. Change successful, ticket closed."}
+{"hop": 5, "from": "handover", "to": "next_shift", "payload": "R1: vendor SSH access in place and working. No pending actions."}

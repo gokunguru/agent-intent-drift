@@ -1,0 +1,23 @@
+{
+  "id": "CR-0001",
+  "text": "Allow SSH from vendor subnet 10.50.0.0/24 to core router R1 during tonight's maintenance window (02:00-04:00), then revert.",
+  "device": "R1",
+  "window": {
+    "start": "2026-11-10T02:00:00",
+    "end": "2026-11-10T04:00:00"
+  },
+  "simulation": {
+    "start_time": "2026-11-09T22:00:00",
+    "end_state_check_time": "2026-11-10T04:05:00"
+  },
+  "expected_change": {
+    "op": "add_acl_entry",
+    "acl": "MGMT-IN",
+    "entry": {"seq": 20, "action": "permit", "proto": "tcp", "src": "10.50.0.0/24", "dst": "any", "dport": 22}
+  },
+  "expected_revert": {
+    "op": "remove_acl_entry",
+    "acl": "MGMT-IN",
+    "entry": {"seq": 20, "action": "permit", "proto": "tcp", "src": "10.50.0.0/24", "dst": "any", "dport": 22}
+  }
+}
