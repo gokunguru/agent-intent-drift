@@ -1,5 +1,6 @@
 {
   "id": "CR-0001",
+  "version": "0.1",
   "text": "Allow SSH from vendor subnet 10.50.0.0/24 to core router R1 during tonight's maintenance window (02:00-04:00), then revert.",
   "device": "R1",
   "window": {

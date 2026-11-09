@@ -44,10 +44,23 @@ Secondary: cost and latency per run.
 ## Protocol
 
 1. Pilot: ~5 baseline runs to confirm drift actually occurs.
-2. Campaign: 30 runs per condition, same seeds across A/B/C.
-3. Analysis via trajectory replay.
+2. Freeze: scenario frozen and tagged before the campaign (see below).
+3. Campaign: 30 runs per condition, same seeds across A/B/C.
+4. Analysis via trajectory replay.
 
 Negative or mixed results are reported as they are.
+
+## Scenario freeze
+
+Scenario adjustments made during the pilot are logged in
+[`scenario/CHANGELOG.md`](scenario/CHANGELOG.md) with their reason, and bump
+`version` in `scenario/change_request.json`. Before the full campaign, the
+final scenario is set to `1.0` and tagged `scenario-v1.0` in git. Nothing in
+the scenario changes after that.
+
+Each run records `scenario_version` in its `meta.json`, and `score_run` reports
+`scenario_version_matches`. Runs that don't match the frozen version are
+excluded from the comparison.
 
 ## Layout
 
@@ -69,7 +82,7 @@ Each run is a folder `runs/<run_id>/` with:
 
 - `trajectory.jsonl`: one handoff per line, `{"hop", "from", "to", "payload"}`
 - `device_state.json`: R1 state at the end of the run, including scheduled jobs
-- `meta.json`: `{"run_id", "condition", "seed", "model"}`
+- `meta.json`: `{"run_id", "condition", "seed", "model", "scenario_version"}`
 
 ## Usage
 

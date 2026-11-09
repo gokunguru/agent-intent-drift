@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ from scoring.preservation import check_payload
 from scoring.score_run import score_run
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
+ROOT = FIXTURES.parent.parent
 
 
 @pytest.mark.parametrize(
@@ -62,3 +64,13 @@ def test_measures_are_independent():
     hop2 = result["preservation"]["per_hop"][1]
     assert hop2["preserved"] is True
     assert result["end_state"]["correct"] is False
+
+
+def test_scenario_version_is_checked(tmp_path):
+    assert score_run(FIXTURES / "run_drift")["scenario_version_matches"] is True
+    scenario = json.loads((ROOT / "scenario" / "change_request.json").read_text())
+    scenario["version"] = "1.0"
+    frozen = tmp_path / "change_request.json"
+    frozen.write_text(json.dumps(scenario))
+    result = score_run(FIXTURES / "run_drift", scenario_path=frozen)
+    assert result["scenario_version_matches"] is False

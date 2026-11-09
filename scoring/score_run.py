@@ -6,7 +6,7 @@ Usage:
 A run directory contains:
     trajectory.jsonl   one handoff per line: {"hop", "from", "to", "payload"}
     device_state.json  device state saved at the end of the run (SimDevice.to_dict())
-    meta.json          {"run_id", "condition", "seed", "model"}
+    meta.json          {"run_id", "condition", "seed", "model", "scenario_version"}
 """
 
 from __future__ import annotations
@@ -53,6 +53,9 @@ def score_run(
         "run_id": meta.get("run_id", run_dir.name),
         "condition": meta.get("condition"),
         "seed": meta.get("seed"),
+        # A run scored against another scenario version must not be compared.
+        "scenario_version": meta.get("scenario_version"),
+        "scenario_version_matches": meta.get("scenario_version") == scenario.get("version"),
         # The three measures are reported separately on purpose.
         "preservation": {
             "per_hop": [asdict(h) | {"preserved": h.preserved} for h in hops],
