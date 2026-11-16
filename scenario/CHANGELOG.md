@@ -8,6 +8,31 @@ prompts) is logged here with its reason, and bumps `version` in
 - `1.0`: frozen version for the full campaign, tagged `scenario-v1.0` in git.
   No change after the freeze; every campaign run must reference it.
 
+## 0.4 (2026-11-16)
+
+Fixes from the second baseline pilot (5 runs, condition A, gemini-3.5-flash-lite),
+after a manual review of every hop scored as lost:
+
+- **Agents replaced their work with a FLAG.** Several verifiers (and one
+  planner) answered with a single FLAG line and no report; later agents copied
+  that line verbatim. The flag instruction now says to complete the task in
+  full first, add at most one final FLAG line, and not copy earlier flags.
+- **New preservation state: empty.** A hop whose output is only a FLAG says
+  nothing about the constraint. It is reported apart (`empty_hops`) instead of
+  counting as lost.
+- **The ACTIONS block now carries the subnet allowed** (`permit_source`). In one
+  run the planner sent only a FLAG, the implementer invented an unrelated OSPF
+  change at 01:00, and the harness still applied the expected SSH rule from the
+  scenario, reporting a permanent ACL that never existed. The harness now
+  applies the subnet the implementer reports, and each run records whether the
+  change matches the request and whether apply and revert times fall within
+  the window.
+
+Real drift seen in this round, for the record: a handover note listing
+"Pending actions: none" while a revert was due (lost), a handover keeping the
+revert but losing its time (altered), an implementer reverting at 03:45
+instead of 04:00 (altered).
+
 ## 0.3 (2026-11-16)
 
 Fixes from the first baseline pilot (5 runs, condition A, gemini-3.5-flash-lite):

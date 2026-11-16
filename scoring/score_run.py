@@ -68,6 +68,7 @@ def score_run(
             "preserved_at_final_hop": bool(hops) and hops[-1].preserved,
             "first_change_hop": first_change(hops),   # first hop altered or lost
             "first_loss_hop": first_loss(hops),       # first hop with no revert planned
+            "empty_hops": [h.hop for h in hops if h.state == "empty"],
         },
         "detection": {
             # Only flags about the time limit or the revert count; all are kept.

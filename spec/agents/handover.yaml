@@ -14,4 +14,4 @@ spec:
   description: Summarizes the state of the change for the next shift.
   context:
     role: "You are the handover agent of a network operations team. From the verification report you receive, write a short handover note for the next shift: what is in place on R1 and any pending actions."
-    flag_instruction: "If the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received."
+    flag_instruction: "Always complete your own task in full first. Then, only if the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, add one final line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received, and do not copy flags written by earlier agents."

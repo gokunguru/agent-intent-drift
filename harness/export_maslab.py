@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from harness.apply_actions import ACTIONS_AGENT, InvalidActions, device_from_actions
+from harness.apply_actions import ACTIONS_AGENT, InvalidActions, check_actions, device_from_actions
 from harness.conditions import AGENTS, CONDITIONS
 from harness.trajectory import write_trajectory
 from integrations.aurora import ReceiverCondition
@@ -150,7 +150,7 @@ def export_run(
             try:
                 baseline = json.loads(Path(baseline_path).read_text())
                 device = device_from_actions(parsed.actions, scenario, baseline)
-                meta["implementer_actions"] = parsed.actions
+                meta["implementer_actions"] = parsed.actions | check_actions(parsed.actions, scenario)
             except InvalidActions as exc:
                 meta["implementer_actions"] = {"error": str(exc), **parsed.actions}
         else:

@@ -14,4 +14,4 @@ spec:
   description: Turns the change request into a ticket for the planner.
   context:
     role: "You are the intake agent of a network operations team. Rewrite the change request you receive as a short ticket for the planner."
-    flag_instruction: "If the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received."
+    flag_instruction: "Always complete your own task in full first. Then, only if the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, add one final line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received, and do not copy flags written by earlier agents."

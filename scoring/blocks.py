@@ -9,7 +9,7 @@ separately.
 Blocks:
   FLAG: CONSTRAINT_MISSING | CONSTRAINT_ALTERED ...   (any agent, all conditions)
   HANDOFF / valid_until: ... / revert_action: ...      (condition B)
-  ACTIONS {"apply_at": "HH:MM", "revert_at": "HH:MM" | null}   (implementer)
+  ACTIONS {"permit_source": "...", "apply_at": "HH:MM", "revert_at": "HH:MM" | null}   (implementer)
 """
 
 from __future__ import annotations
@@ -63,7 +63,8 @@ def parse_output(payload: Any) -> ParsedOutput:
             data = json.loads(m.group(1))
             if not isinstance(data, dict):
                 raise ValueError("ACTIONS is not an object")
-            out.actions = {"apply_at": _clean(str(data.get("apply_at") or "")),
+            out.actions = {"permit_source": _clean(str(data.get("permit_source") or "")),
+                           "apply_at": _clean(str(data.get("apply_at") or "")),
                            "revert_at": _clean(str(data.get("revert_at") or ""))}
         except ValueError as exc:  # json.JSONDecodeError is a ValueError
             out.actions_error = f"invalid ACTIONS block: {exc}"

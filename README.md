@@ -46,7 +46,8 @@ request, under an appropriate agreement.
 1. **Constraint preservation**: each handoff is *preserved* (a revert is still
    planned and the 04:00 end is there), *altered* (a revert is planned but the
    end time changed or became vague) or *lost* (no revert planned: the change
-   would stay permanent). Deterministic rules (`scoring/preservation.py`); FLAG
+   would stay permanent). A hop whose output is only a FLAG line is reported
+   as *empty*, apart. Deterministic rules (`scoring/preservation.py`); FLAG
    lines and HANDOFF / ACTIONS blocks are parsed apart so their own wording never
    counts as content. Plus a manual spot-check on a sample.
 2. **Drift detection**: does any agent explicitly flag a problem with the time
@@ -54,9 +55,11 @@ request, under an appropriate agreement.
    time limit or the revert; every flag is kept for review (`scoring/detection.py`).
 3. **End-state correctness**: after a simulated 04:00, is R1 back to its
    baseline config? The implementer ends its output with
-   `ACTIONS {"apply_at": "HH:MM", "revert_at": "HH:MM" | null}`; the harness
-   applies it to the simulator after the run, no LLM involved
-   (`harness/apply_actions.py`, `scoring/end_state.py`).
+   `ACTIONS {"permit_source": "...", "apply_at": "HH:MM", "revert_at": "HH:MM" | null}`;
+   the harness applies that change (with the subnet reported) to the simulator
+   after the run, no LLM involved, and records whether the change matches the
+   request and stays within the window (`harness/apply_actions.py`,
+   `scoring/end_state.py`).
 
 Secondary: cost and latency per run.
 
@@ -128,7 +131,8 @@ Running the pipeline with [MAS-Lab](https://github.com/outshift-open/mas-lab)
 - [x] MAS-Lab spec for the 5 agents, overlays for B and C, export script
 - [x] Implementer wired to the simulator (ACTIONS block applied after the run)
 - [x] Baseline pilot, round 1 (measurement fixes, scenario 0.3)
-- [ ] Baseline pilot, round 2
+- [x] Baseline pilot, round 2 (manual review, scenario 0.4)
+- [ ] Baseline pilot, round 3
 - [ ] Pilot
 - [ ] Campaign and results
 

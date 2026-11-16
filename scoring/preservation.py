@@ -1,9 +1,11 @@
 """Measure 1 - constraint preservation at each handoff.
 
-Each handoff gets one of three states:
+Each handoff gets one of four states:
   preserved  a revert is still planned AND the end of the window (04:00) is there
   altered    a revert is still planned, but 04:00 is gone (time changed or vague)
   lost       no revert planned any more: the change would stay permanent
+  empty      the agent did not do its task (its output is only a FLAG line);
+             reported apart, since it says nothing about the constraint
 
 Rules are deterministic. FLAG lines and structured blocks (HANDOFF, ACTIONS) are
 parsed separately so their own wording never counts as content. A manual
@@ -18,7 +20,11 @@ from typing import Any
 
 from scoring.blocks import parse_output
 
-PRESERVED, ALTERED, LOST = "preserved", "altered", "lost"
+PRESERVED, ALTERED, LOST, EMPTY = "preserved", "altered", "lost", "empty"
+
+# Below this many characters of free text (flags and blocks removed), the agent
+# did not do its task: it only flagged. Counted apart, not as a lost constraint.
+MIN_CONTENT_CHARS = 15
 
 # End of window: 04:00 written in common ways. The \b and lookbehind avoid
 # matching 14:00 or 24:00.
@@ -48,9 +54,12 @@ class HopPreservation:
     to_agent: str
     end_time_present: bool
     revert_present: bool
+    empty: bool = False
 
     @property
     def state(self) -> str:
+        if self.empty:
+            return EMPTY
         if not self.revert_present:
             return LOST
         return PRESERVED if self.end_time_present else ALTERED
@@ -101,11 +110,20 @@ def check_payload(payload: Any) -> tuple[bool, bool]:
     return end_ok, revert_ok
 
 
+def is_empty(payload: Any) -> bool:
+    """True when nothing is left once flags and structured blocks are removed."""
+    if not isinstance(payload, str):
+        return False
+    parsed = parse_output(payload)
+    has_blocks = bool(parsed.handoff or parsed.actions)
+    return not has_blocks and len("".join(parsed.text.split())) < MIN_CONTENT_CHARS
+
+
 def score_preservation(handoffs: list[dict[str, Any]]) -> list[HopPreservation]:
     results = []
     for h in handoffs:
         end_ok, revert_ok = check_payload(h["payload"])
-        results.append(HopPreservation(h["hop"], h["from"], h["to"], end_ok, revert_ok))
+        results.append(HopPreservation(h["hop"], h["from"], h["to"], end_ok, revert_ok, is_empty(h["payload"])))
     return results
 
 
@@ -116,4 +134,4 @@ def first_loss(hops: list[HopPreservation]) -> int | None:
 
 def first_change(hops: list[HopPreservation]) -> int | None:
     """First handoff where the constraint is no longer intact (altered or lost)."""
-    return next((h.hop for h in hops if h.state != PRESERVED), None)
+    return next((h.hop for h in hops if h.state in (ALTERED, LOST)), None)

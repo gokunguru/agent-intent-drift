@@ -56,7 +56,7 @@ def test_actions_block():
 def test_parse_output_separates_blocks():
     p = parse_output('Text.\nFLAG: CONSTRAINT_ALTERED x\nACTIONS ```json {"apply_at": "02:00", "revert_at": null} ```')
     assert p.flags == [("constraint_altered", "FLAG: CONSTRAINT_ALTERED x")]
-    assert p.actions == {"apply_at": "02:00", "revert_at": None}
+    assert p.actions == {"permit_source": None, "apply_at": "02:00", "revert_at": None}
     assert "ACTIONS" not in p.text and "FLAG" not in p.text
 
 
@@ -77,14 +77,16 @@ def test_only_relevant_flags_count():
 
 @pytest.mark.parametrize("revert_at, correct", [("04:00", True), ("03:45", True), (None, False)])
 def test_actions_drive_the_end_state(revert_at, correct):
-    device = device_from_actions({"apply_at": "02:00", "revert_at": revert_at}, SCENARIO, BASELINE)
+    device = device_from_actions({"permit_source": "10.50.0.0/24", "apply_at": "02:00", "revert_at": revert_at}, SCENARIO, BASELINE)
     assert check_end_state(device, BASELINE, CHECK).correct is correct
 
 
 @pytest.mark.parametrize("actions", [
-    {"apply_at": "02:00", "revert_at": "01:30"},     # revert before apply
-    {"apply_at": "<HH:MM>", "revert_at": None},      # template echoed back
-    {"apply_at": "21:00", "revert_at": None},        # before the simulation starts
+    {"permit_source": "10.50.0.0/24", "apply_at": "02:00", "revert_at": "01:30"},  # revert before apply
+    {"permit_source": "10.50.0.0/24", "apply_at": "<HH:MM>", "revert_at": None},   # template echoed back
+    {"permit_source": "10.50.0.0/24", "apply_at": "21:00", "revert_at": None},     # before simulation start
+    {"permit_source": None, "apply_at": "02:00", "revert_at": "04:00"},            # no subnet
+    {"permit_source": "<subnet allowed>", "apply_at": "02:00", "revert_at": "04:00"},
 ])
 def test_invalid_actions_are_rejected(actions):
     with pytest.raises(InvalidActions):
@@ -105,9 +107,12 @@ def _events_with_implementer_output(tmp_path, output):
 
 def test_export_builds_end_state_from_actions(tmp_path):
     path = _events_with_implementer_output(
-        tmp_path, 'Applied at 02:00.\nACTIONS {"apply_at": "02:00", "revert_at": null}')
+        tmp_path, 'Applied the vendor SSH rule at 02:00.\n'
+                  'ACTIONS {"permit_source": "10.50.0.0/24", "apply_at": "02:00", "revert_at": null}')
     meta = export_run(path, tmp_path / "run", condition="A", seed=1, model="m")
-    assert meta["implementer_actions"] == {"apply_at": "02:00", "revert_at": None}
+    acts = meta["implementer_actions"]
+    assert acts["revert_at"] is None and acts["change_matches_request"] is True
+    assert acts["revert_planned"] is False
     result = score_run(tmp_path / "run")
     assert result["end_state"]["correct"] is False          # the ACL stays permanent
     assert result["preservation"]["per_hop"][2]["state"] == LOST
@@ -117,3 +122,30 @@ def test_export_records_missing_actions(tmp_path):
     meta = export_run(EVENTS, tmp_path / "run", condition="A", seed=1, model="m")
     assert "error" in meta["implementer_actions"]
     assert not (tmp_path / "run" / "device_state.json").exists()
+
+
+# --- round 2 of pilot fixes (scenario 0.4) ---------------------------------------
+
+def test_flag_only_output_is_empty_not_lost():
+    assert state("FLAG: CONSTRAINT_MISSING Revert plan lacks a specific time.") == "empty"
+    assert state("Handover note: pending actions none noted.") == LOST
+
+
+def test_wrong_change_is_applied_as_reported():
+    """Pilot run 2: an invented change must not be scored as the expected one."""
+    acts = {"permit_source": "192.168.1.0/24", "apply_at": "01:00", "revert_at": None}
+    from harness.apply_actions import check_actions
+    facts = check_actions(acts, SCENARIO)
+    assert facts["change_matches_request"] is False
+    assert facts["applied_within_window"] is False
+    device = device_from_actions(acts, SCENARIO, BASELINE)
+    result = check_end_state(device, BASELINE, CHECK)
+    assert result.correct is False
+    assert result.added["MGMT-IN"][0]["src"] == "192.168.1.0/24"
+
+
+def test_early_revert_is_within_window():
+    from harness.apply_actions import check_actions
+    facts = check_actions({"permit_source": "10.50.0.0/24", "apply_at": "02:15", "revert_at": "03:45"}, SCENARIO)
+    assert facts == {"change_matches_request": True, "applied_within_window": True,
+                     "revert_planned": True, "revert_within_window": True}
