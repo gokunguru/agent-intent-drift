@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from harness.conditions import AGENTS, FLAG_INSTRUCTION
-from harness.export_maslab import export_run, read_events
+from harness.export_maslab import FailedRun, export_run, read_events
 from harness.trajectory import read_trajectory
 from integrations.aurora import RECEIVING_AGENTS, PrivateConditionLeak, ReceiverCondition
 from scoring.score_run import score_run
@@ -79,6 +79,18 @@ def test_condition_arguments_match_the_condition(tmp_path):
     with pytest.raises(ValueError):
         export_run(EVENTS, tmp_path / "b", condition="A", seed=1, model="m",
                    condition_file=cond, condition_version="v0")
+
+
+def test_failed_llm_call_is_not_a_lost_constraint(tmp_path):
+    events = read_events(EVENTS)
+    for e in events:
+        if e["kind"] == "llm_call_end" and e["agent_id"] == "intake":
+            e["output"] = "LLM request failed: HTTP 401 (authentication/authorization): API key not valid."
+    path = tmp_path / "events.jsonl"
+    path.write_text("".join(json.dumps(e) + "\n" for e in events))
+    with pytest.raises(FailedRun):
+        export_run(path, tmp_path / "run", condition="A", seed=1, model="test-model")
+    assert not (tmp_path / "run").exists()
 
 
 # --- spec/ stays consistent with the equivalence rule -------------------------

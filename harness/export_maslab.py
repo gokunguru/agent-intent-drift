@@ -24,6 +24,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,14 @@ from integrations.aurora import ReceiverCondition
 
 ROOT = Path(__file__).resolve().parent.parent
 FINAL_RECIPIENT = "next_shift"
+
+# Outputs MAS-Lab writes when an LLM or delegation call fails. A run where an
+# agent "answered" with one of these is a failed run, not a lost constraint.
+FAILURE_MARKERS = ("LLM request failed", "LLM call exhausted", "[send] agent ")
+
+
+class FailedRun(ValueError):
+    """The run did not complete: at least one agent output is an error."""
 
 
 def _text(value: Any) -> str:
@@ -61,7 +70,11 @@ def agent_io(events: list[dict[str, Any]], agents: list[str]) -> dict[str, dict[
             io[agent]["output"] = _text(e.get("output"))  # last call wins
     missing = [a for a in agents if io[a]["output"] is None]
     if missing:
-        raise ValueError(f"no llm_call_end output for: {', '.join(missing)}")
+        raise FailedRun(f"no llm_call_end output for: {', '.join(missing)}")
+    failed = [a for a in agents if str(io[a]["output"]).lstrip().startswith(FAILURE_MARKERS)]
+    if failed:
+        first = str(io[failed[0]]["output"]).strip().splitlines()[0][:120]
+        raise FailedRun(f"run failed at {', '.join(failed)}: {first}")
     return io
 
 
@@ -145,12 +158,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--condition-version")
     parser.add_argument("--device-state")
     args = parser.parse_args(argv)
-    meta = export_run(
-        args.events, args.out_dir,
-        condition=args.condition, seed=args.seed, model=args.model, run_id=args.run_id,
-        condition_file=args.condition_file, condition_version=args.condition_version,
-        device_state=args.device_state,
-    )
+    try:
+        meta = export_run(
+            args.events, args.out_dir,
+            condition=args.condition, seed=args.seed, model=args.model, run_id=args.run_id,
+            condition_file=args.condition_file, condition_version=args.condition_version,
+            device_state=args.device_state,
+        )
+    except FailedRun as exc:
+        print(f"FAILED RUN, not exported: {exc}", file=sys.stderr)
+        return 2
     print(json.dumps(meta, indent=2))
     return 0
 
