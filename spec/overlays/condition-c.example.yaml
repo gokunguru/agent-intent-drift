@@ -1,0 +1,28 @@
+apiVersion: mas/v1
+kind: Overlay
+metadata:
+  name: condition-c
+  description: >
+    Condition C, private condition on the receiving agent. Public template only:
+    the real condition text is kept out of this repo. Copy this file to
+    spec/overlays/condition-c.yaml (gitignored) and replace the placeholder.
+    Every agent that receives a handoff gets the condition in its own context;
+    the handoff message itself is never modified. intake receives the original
+    request, not a handoff, so it gets no condition.
+spec:
+  target:
+    kind: MAS
+  patch:
+    agents:
+      planner:
+        context:
+          condition: &condition "<PRIVATE CONDITION, provided separately>"
+      implementer:
+        context:
+          condition: *condition
+      verifier:
+        context:
+          condition: *condition
+      handover:
+        context:
+          condition: *condition

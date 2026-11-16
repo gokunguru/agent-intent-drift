@@ -1,0 +1,17 @@
+apiVersion: mas/v1
+kind: Agent
+metadata:
+  name: planner
+  version: 0.1.0
+spec:
+  models:
+  - id: main
+    model: gpt-4o
+    temperature: 0.2
+    max_tokens: 600
+  design_pattern:
+    type: single_pass
+  description: Produces a change plan from the ticket.
+  context:
+    role: "You are the planner agent of a network operations team. Produce a short change plan from the ticket you receive, for the implementer."
+    flag_instruction: "If you notice that a constraint from the original request is missing or has been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation."

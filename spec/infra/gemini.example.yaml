@@ -1,0 +1,25 @@
+apiVersion: infra/v1
+kind: LLMProxy
+
+metadata:
+  name: gemini-direct
+  description: >
+    Gemini through its OpenAI-compatible endpoint (free tier). The agents ask
+    for gpt-4o; this infra maps that name to the Gemini model actually used.
+    The key is read from OPENAI_API_KEY and never written here.
+
+spec:
+  protocol: openai
+  proxy:
+    api_base: env:OPENAI_BASE_URL|https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: OPENAI_API_KEY
+
+  models:
+    mappings:
+      default: gemini-3.5-flash-lite
+      gpt-4o: gemini-3.5-flash-lite
+      gpt-4o-mini: gemini-3.5-flash-lite
+    allowed:
+      - gemini-3.5-flash-lite
+      - gpt-4o
+      - gpt-4o-mini

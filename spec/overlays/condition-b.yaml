@@ -1,0 +1,28 @@
+apiVersion: mas/v1
+kind: Overlay
+metadata:
+  name: condition-b
+  description: >
+    Condition B, structured handoff. Every agent ends its output with the same
+    explicit constraint fields. It restructures what the agent already knows;
+    it adds no information about the request.
+spec:
+  target:
+    kind: MAS
+  patch:
+    agents:
+      intake:
+        context:
+          handoff_format: &handoff "End your output with this block, filled from what you know:\nHANDOFF\nvalid_until: <end of the authorised window, or none>\nrevert_action: <how the change is undone, or none>"
+      planner:
+        context:
+          handoff_format: *handoff
+      implementer:
+        context:
+          handoff_format: *handoff
+      verifier:
+        context:
+          handoff_format: *handoff
+      handover:
+        context:
+          handoff_format: *handoff

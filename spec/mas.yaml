@@ -1,0 +1,40 @@
+apiVersion: mas/v1
+kind: MAS
+metadata:
+  name: agent-intent-drift
+  version: "0.1.0"
+
+intent:
+  summary: >
+    Five-agent change pipeline for a temporary access request on a simulated
+    core router. Used to measure whether a time-bound constraint survives the
+    handoffs.
+
+spec:
+  agency:
+    agents:
+      - id: moderator
+        ref: agents/moderator.yaml
+      - id: intake
+        ref: agents/intake.yaml
+      - id: planner
+        ref: agents/planner.yaml
+      - id: implementer
+        ref: agents/implementer.yaml
+      - id: verifier
+        ref: agents/verifier.yaml
+      - id: handover
+        ref: agents/handover.yaml
+
+  # The moderator is deterministic (no LLM): each agent receives the previous
+  # agent's output verbatim. Checked on MAS-Lab v0.2 with the export script.
+  workflow:
+    entry: moderator
+    nodes:
+      - id: moderator
+        delegates_to: [ intake, planner, implementer, verifier, handover ]
+      - id: intake
+      - id: planner
+      - id: implementer
+      - id: verifier
+      - id: handover

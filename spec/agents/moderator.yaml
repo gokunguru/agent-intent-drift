@@ -1,0 +1,12 @@
+apiVersion: mas/v1
+kind: Agent
+metadata:
+  name: moderator
+  version: 0.1.0
+spec:
+  models:
+  - id: main
+    model: gpt-4o
+  design_pattern:
+    type: deterministic_linear
+  description: Passes the task through intake, planner, implementer, verifier and handover, in order.

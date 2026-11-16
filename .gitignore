@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+.env
+.DS_Store
+
+# Raw MAS-Lab traces contain full prompts, including the private condition.
+# Only the exported runs/ format is published.
+traces/
+*.jsonl.raw
+
+# The private condition text (and the overlay built from it) never enters git.
+conditions/private/
+spec/overlays/condition-c.yaml
+
+runs/*
+!runs/.gitkeep
+results/*
+!results/.gitkeep

@@ -45,9 +45,14 @@ def score_run(
     hops = score_preservation(handoffs)
     detections = score_detection(handoffs)
 
-    device = SimDevice.from_dict(json.loads((run_dir / "device_state.json").read_text()))
-    check_time = datetime.fromisoformat(scenario["simulation"]["end_state_check_time"])
-    end_state = check_end_state(device, baseline, check_time)
+    # End state needs the simulator. Runs exported before the implementer is
+    # wired to it have no device_state.json: the measure is then left empty.
+    device_path = run_dir / "device_state.json"
+    end_state = None
+    if device_path.exists():
+        device = SimDevice.from_dict(json.loads(device_path.read_text()))
+        check_time = datetime.fromisoformat(scenario["simulation"]["end_state_check_time"])
+        end_state = check_end_state(device, baseline, check_time)
 
     return {
         "run_id": meta.get("run_id", run_dir.name),
@@ -66,7 +71,7 @@ def score_run(
             "detected": bool(detections),
             "flags": [asdict(d) for d in detections],
         },
-        "end_state": asdict(end_state),
+        "end_state": asdict(end_state) if end_state is not None else None,
     }
 
 

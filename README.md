@@ -23,11 +23,23 @@ Fully simulated. No real devices involved.
 |---|---|
 | A | Free-text handoffs (baseline) |
 | B | Structured handoffs: `valid_until`, `revert_action` at each hop |
-| C | Interaction layer applied at each handoff (Aurora ISL) |
+| C | Free-text handoffs, plus a private condition (Aurora ISL) in the context of each receiving agent |
 
 Equivalence rule: same task, context, constraint wording, model, settings and
 seeds in all conditions. Only the handoff mechanism differs. B restructures
-information already present in A and adds none.
+information already present in A and adds none. In C, the handoff message is
+never modified: the condition only reaches the receiving agent's own context,
+and preservation is measured on what that agent writes.
+
+### Condition C and privacy
+
+Aurora ISL's condition text is private and never enters this repo. For each
+run, the public record holds the original handoffs, each agent's output, and
+the condition's version identifier, SHA-256 hash and length. Any version used
+during the pilot is hashed too, and the final condition is frozen alongside
+`scenario-v1.0`. Condition C can therefore be verified but not reproduced from
+this repo alone; the condition is available for independent verification on
+request, under an appropriate agreement.
 
 ## Measures (reported separately, never combined)
 
@@ -68,9 +80,9 @@ excluded from the comparison.
 scenario/       change request and R1 baseline config
 simulator/      JSON device state + injectable clock (no auto-revert)
 scoring/        the three measures + score_run CLI
-harness/        conditions, trajectory format
-integrations/   handoff-layer interface (condition C)
-spec/           MAS-Lab spec (to do)
+harness/        conditions, trajectory format, MAS-Lab export
+integrations/   condition C interface (private condition, public record)
+spec/           MAS-Lab manifests: pipeline, agents, overlays, infra example
 runs/           recorded runs, one folder per run
 results/        aggregated results
 tests/          unit tests and fixture runs
@@ -80,9 +92,15 @@ tests/          unit tests and fixture runs
 
 Each run is a folder `runs/<run_id>/` with:
 
-- `trajectory.jsonl`: one handoff per line, `{"hop", "from", "to", "payload"}`
+- `trajectory.jsonl`: one handoff per line, `{"hop", "from", "to", "payload", "delivered_verbatim"}`
 - `device_state.json`: R1 state at the end of the run, including scheduled jobs
-- `meta.json`: `{"run_id", "condition", "seed", "model", "scenario_version"}`
+  (absent until the implementer is wired to the simulator; end state is then `null`)
+- `meta.json`: `{"run_id", "condition", "seed", "model", "scenario_version", "raw_trace_sha256"}`,
+  plus `condition_version`, `condition_sha256`, `condition_length` for condition C
+
+Raw MAS-Lab traces (`traces/`) contain full prompts, including the private
+condition, and are never committed. `harness/export_maslab.py` turns them into
+the format above and refuses to write a run if the condition text appears in it.
 
 ## Usage
 
@@ -92,11 +110,15 @@ pytest
 python -m scoring.score_run tests/fixtures/run_drift
 ```
 
+Running the pipeline with [MAS-Lab](https://github.com/outshift-open/mas-lab)
+(v0.2, from source): see [spec/README.md](spec/README.md).
+
 ## Status
 
 - [x] Scenario, simulator, scoring, fixtures
-- [x] Handoff-layer interface (draft)
-- [ ] MAS-Lab spec for the 5 agents
+- [x] Condition C interface (private condition, public record)
+- [x] MAS-Lab spec for the 5 agents, overlays for B and C, export script
+- [ ] Implementer wired to the simulator (tool call)
 - [ ] Pilot
 - [ ] Campaign and results
 

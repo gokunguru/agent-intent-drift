@@ -8,6 +8,12 @@ prompts) is logged here with its reason, and bumps `version` in
 - `1.0`: frozen version for the full campaign, tagged `scenario-v1.0` in git.
   No change after the freeze; every campaign run must reference it.
 
+## 0.2 (2026-11-16)
+
+Agent prompts defined in `spec/agents/` (intake, planner, implementer, verifier,
+handover), all with the same flag instruction. Condition B and C overlays added
+in `spec/overlays/`. Change request and R1 baseline unchanged.
+
 ## 0.1 (2026-11-08)
 
 Initial scenario: temporary SSH access from 10.50.0.0/24 to R1

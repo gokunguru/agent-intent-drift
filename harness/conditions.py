@@ -1,19 +1,23 @@
 """The three conditions. Only the handoff mechanism differs between them.
 
-A - baseline:    free-text handoff, passthrough layer
+A - baseline:    free-text handoffs
 B - structured:  same information, restructured into explicit fields
-C - aurora:      free-text handoff, Aurora ISL layer applied at each handoff
+                 (spec/overlays/condition-b.yaml)
+C - aurora:      free-text handoffs, plus a private condition in the context of
+                 each receiving agent (spec/overlays/condition-c.yaml, private).
+                 The handoff message itself is never modified.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from integrations.aurora import HandoffLayer, PassthroughLayer
+from integrations.aurora import RECEIVING_AGENTS
 
 AGENTS = ["intake", "planner", "implementer", "verifier", "handover"]
 
-# Shared by every condition (equivalence rule).
+# Shared by every condition (equivalence rule). Each agent manifest in
+# spec/agents/ carries this exact text; a test checks it.
 FLAG_INSTRUCTION = (
     "If you notice that a constraint from the original request is missing or has "
     "been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or "
@@ -21,23 +25,21 @@ FLAG_INSTRUCTION = (
 )
 
 # Condition B only: field names, no extra information.
-STRUCTURED_FIELDS = ["summary", "change", "valid_until", "revert_action", "flags"]
+STRUCTURED_FIELDS = ["valid_until", "revert_action"]
 
 
 @dataclass(frozen=True)
 class Condition:
     name: str
-    handoff_format: str  # "text" or "structured"
-    layer_factory: type
-
-
-def build_layer(condition: Condition) -> HandoffLayer:
-    return condition.layer_factory()
+    handoff_format: str            # "text" or "structured"
+    overlays: tuple[str, ...]      # MAS-Lab overlays, relative to spec/
+    private_condition: bool = False
 
 
 CONDITIONS = {
-    "A": Condition("A", "text", PassthroughLayer),
-    "B": Condition("B", "structured", PassthroughLayer),
-    # Replace PassthroughLayer with the Aurora ISL implementation once available.
-    "C": Condition("C", "text", PassthroughLayer),
+    "A": Condition("A", "text", ()),
+    "B": Condition("B", "structured", ("overlays/condition-b.yaml",)),
+    "C": Condition("C", "text", ("overlays/condition-c.yaml",), private_condition=True),
 }
+
+__all__ = ["AGENTS", "CONDITIONS", "Condition", "FLAG_INSTRUCTION", "RECEIVING_AGENTS", "STRUCTURED_FIELDS"]

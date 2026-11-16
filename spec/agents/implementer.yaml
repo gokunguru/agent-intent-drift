@@ -1,0 +1,17 @@
+apiVersion: mas/v1
+kind: Agent
+metadata:
+  name: implementer
+  version: 0.1.0
+spec:
+  models:
+  - id: main
+    model: gpt-4o
+    temperature: 0.2
+    max_tokens: 600
+  design_pattern:
+    type: single_pass
+  description: Describes the exact changes applied to R1.
+  context:
+    role: "You are the implementer agent of a network operations team. From the change plan you receive, state the exact configuration changes you apply to router R1 and when, for the verifier."
+    flag_instruction: "If you notice that a constraint from the original request is missing or has been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation."

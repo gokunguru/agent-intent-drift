@@ -1,3 +1,7 @@
-from integrations.aurora.interface import HandoffLayer, Payload, PassthroughLayer
+from integrations.aurora.interface import (
+    RECEIVING_AGENTS,
+    PrivateConditionLeak,
+    ReceiverCondition,
+)
 
-__all__ = ["HandoffLayer", "Payload", "PassthroughLayer"]
+__all__ = ["RECEIVING_AGENTS", "PrivateConditionLeak", "ReceiverCondition"]
