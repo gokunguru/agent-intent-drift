@@ -19,9 +19,19 @@ AGENTS = ["intake", "planner", "implementer", "verifier", "handover"]
 # Shared by every condition (equivalence rule). Each agent manifest in
 # spec/agents/ carries this exact text; a test checks it.
 FLAG_INSTRUCTION = (
-    "If you notice that a constraint from the original request is missing or has "
-    "been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or "
-    "'FLAG: CONSTRAINT_ALTERED' followed by a short explanation."
+    "If the task you received contains a time limit or a revert step that is incomplete, "
+    "unclear or inconsistent, write a line starting with 'FLAG: CONSTRAINT_MISSING' or "
+    "'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the "
+    "task you received."
+)
+
+# Implementer only, all conditions: the timing it decides, applied to the
+# simulator after the run (harness/apply_actions.py).
+ACTIONS_INSTRUCTION = (
+    "End your output with one line: ACTIONS followed by a JSON object of this form: "
+    'ACTIONS {"apply_at": "<HH:MM>", "revert_at": "<HH:MM or null>"}. Use the times you '
+    "actually apply and revert the change tonight. Use null for revert_at if you do not "
+    "plan to revert it."
 )
 
 # Condition B only: field names, no extra information.
@@ -42,4 +52,4 @@ CONDITIONS = {
     "C": Condition("C", "text", ("overlays/condition-c.yaml",), private_condition=True),
 }
 
-__all__ = ["AGENTS", "CONDITIONS", "Condition", "FLAG_INSTRUCTION", "RECEIVING_AGENTS", "STRUCTURED_FIELDS"]
+__all__ = ["ACTIONS_INSTRUCTION", "AGENTS", "CONDITIONS", "Condition", "FLAG_INSTRUCTION", "RECEIVING_AGENTS", "STRUCTURED_FIELDS"]

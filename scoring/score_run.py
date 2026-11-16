@@ -22,7 +22,7 @@ from typing import Any
 from harness.trajectory import read_trajectory
 from scoring.detection import score_detection
 from scoring.end_state import check_end_state
-from scoring.preservation import first_loss, score_preservation
+from scoring.preservation import first_change, first_loss, score_preservation
 from simulator import SimDevice
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -63,12 +63,15 @@ def score_run(
         "scenario_version_matches": meta.get("scenario_version") == scenario.get("version"),
         # The three measures are reported separately on purpose.
         "preservation": {
-            "per_hop": [asdict(h) | {"preserved": h.preserved} for h in hops],
+            "per_hop": [asdict(h) | {"state": h.state, "preserved": h.preserved} for h in hops],
+            "final_state": hops[-1].state if hops else None,
             "preserved_at_final_hop": bool(hops) and hops[-1].preserved,
-            "first_loss_hop": first_loss(hops),
+            "first_change_hop": first_change(hops),   # first hop altered or lost
+            "first_loss_hop": first_loss(hops),       # first hop with no revert planned
         },
         "detection": {
-            "detected": bool(detections),
+            # Only flags about the time limit or the revert count; all are kept.
+            "detected": any(d.relevant for d in detections),
             "flags": [asdict(d) for d in detections],
         },
         "end_state": asdict(end_state) if end_state is not None else None,

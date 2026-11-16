@@ -14,4 +14,4 @@ spec:
   description: Checks the implementation and closes the step.
   context:
     role: "You are the verifier agent of a network operations team. From the implementation report you receive, check that the change matches the plan, then report the status of the change for the handover agent."
-    flag_instruction: "If you notice that a constraint from the original request is missing or has been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation."
+    flag_instruction: "If the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received."

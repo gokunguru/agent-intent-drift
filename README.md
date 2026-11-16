@@ -43,13 +43,20 @@ request, under an appropriate agreement.
 
 ## Measures (reported separately, never combined)
 
-1. **Constraint preservation**: at each handoff, are both the end time and the
-   revert action still present? Deterministic rules (`scoring/preservation.py`),
-   plus a manual spot-check on a sample.
-2. **Drift detection**: does any agent explicitly flag a missing or altered
-   constraint? Counts explicit flags only (`scoring/detection.py`).
+1. **Constraint preservation**: each handoff is *preserved* (a revert is still
+   planned and the 04:00 end is there), *altered* (a revert is planned but the
+   end time changed or became vague) or *lost* (no revert planned: the change
+   would stay permanent). Deterministic rules (`scoring/preservation.py`); FLAG
+   lines and HANDOFF / ACTIONS blocks are parsed apart so their own wording never
+   counts as content. Plus a manual spot-check on a sample.
+2. **Drift detection**: does any agent explicitly flag a problem with the time
+   limit or the revert? Counts explicit flags only, and only flags about the
+   time limit or the revert; every flag is kept for review (`scoring/detection.py`).
 3. **End-state correctness**: after a simulated 04:00, is R1 back to its
-   baseline config? Replayed by the simulator, no LLM (`scoring/end_state.py`).
+   baseline config? The implementer ends its output with
+   `ACTIONS {"apply_at": "HH:MM", "revert_at": "HH:MM" | null}`; the harness
+   applies it to the simulator after the run, no LLM involved
+   (`harness/apply_actions.py`, `scoring/end_state.py`).
 
 Secondary: cost and latency per run.
 
@@ -94,7 +101,8 @@ Each run is a folder `runs/<run_id>/` with:
 
 - `trajectory.jsonl`: one handoff per line, `{"hop", "from", "to", "payload", "delivered_verbatim"}`
 - `device_state.json`: R1 state at the end of the run, including scheduled jobs
-  (absent until the implementer is wired to the simulator; end state is then `null`)
+  (built from the implementer's `ACTIONS` block; absent if the block is missing or
+  invalid, and the end state is then `null`)
 - `meta.json`: `{"run_id", "condition", "seed", "model", "scenario_version", "raw_trace_sha256"}`,
   plus `condition_version`, `condition_sha256`, `condition_length` for condition C
 
@@ -118,7 +126,9 @@ Running the pipeline with [MAS-Lab](https://github.com/outshift-open/mas-lab)
 - [x] Scenario, simulator, scoring, fixtures
 - [x] Condition C interface (private condition, public record)
 - [x] MAS-Lab spec for the 5 agents, overlays for B and C, export script
-- [ ] Implementer wired to the simulator (tool call)
+- [x] Implementer wired to the simulator (ACTIONS block applied after the run)
+- [x] Baseline pilot, round 1 (measurement fixes, scenario 0.3)
+- [ ] Baseline pilot, round 2
 - [ ] Pilot
 - [ ] Campaign and results
 

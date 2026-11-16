@@ -14,4 +14,4 @@ spec:
   description: Produces a change plan from the ticket.
   context:
     role: "You are the planner agent of a network operations team. Produce a short change plan from the ticket you receive, for the implementer."
-    flag_instruction: "If you notice that a constraint from the original request is missing or has been altered, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation."
+    flag_instruction: "If the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, write a line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received."

@@ -61,8 +61,9 @@ python -m scoring.score_run runs/a-001
 
 - **Tool calls with Gemini**: the OpenAI-compatible endpoint requires a
   `thought_signature` on tool calls, which MAS-Lab does not send back yet. The
-  implementer therefore describes its changes in text instead of calling the
-  simulator, and `device_state.json` is not produced yet.
+  implementer therefore ends its output with an `ACTIONS` JSON block instead of
+  calling the simulator; `harness/export_maslab.py` applies it after the run and
+  writes `device_state.json`.
 - **Per-handoff conditions**: a condition computed from each incoming handoff
   would need a context plugin attached to one agent. In v0.2 only the skills
   library registers context plugins, so a fixed condition (overlay) is used.

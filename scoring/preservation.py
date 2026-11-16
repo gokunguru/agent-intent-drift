@@ -1,8 +1,13 @@
 """Measure 1 - constraint preservation at each handoff.
 
-A handoff preserves the constraint only if BOTH the end of the window and the
-revert action are still present. Rules are deterministic; a manual spot-check
-on a sample of runs is done separately (see README).
+Each handoff gets one of three states:
+  preserved  a revert is still planned AND the end of the window (04:00) is there
+  altered    a revert is still planned, but 04:00 is gone (time changed or vague)
+  lost       no revert planned any more: the change would stay permanent
+
+Rules are deterministic. FLAG lines and structured blocks (HANDOFF, ACTIONS) are
+parsed separately so their own wording never counts as content. A manual
+spot-check on a sample of runs is done separately (see README).
 """
 
 from __future__ import annotations
@@ -10,6 +15,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Any
+
+from scoring.blocks import parse_output
+
+PRESERVED, ALTERED, LOST = "preserved", "altered", "lost"
 
 # End of window: 04:00 written in common ways. The \b and lookbehind avoid
 # matching 14:00 or 24:00.
@@ -41,8 +50,14 @@ class HopPreservation:
     revert_present: bool
 
     @property
+    def state(self) -> str:
+        if not self.revert_present:
+            return LOST
+        return PRESERVED if self.end_time_present else ALTERED
+
+    @property
     def preserved(self) -> bool:
-        return self.end_time_present and self.revert_present
+        return self.state == PRESERVED
 
 
 def _matches_any(patterns: list[str], text: str) -> bool:
@@ -69,7 +84,18 @@ def check_payload(payload: Any) -> tuple[bool, bool]:
             end_ok = True
         if payload.get(STRUCTURED_REVERT_FIELD):
             revert_ok = True
-    text = _as_text(payload)
+        text = _as_text(payload)
+    else:
+        parsed = parse_output(payload)
+        text = parsed.text
+        if parsed.handoff:
+            until, action = parsed.handoff["valid_until"], parsed.handoff["revert_action"]
+            end_ok = bool(until) and _matches_any(END_TIME_PATTERNS, until)
+            revert_ok = bool(action)
+        if parsed.actions:
+            if parsed.actions["revert_at"]:
+                revert_ok = True
+                end_ok = end_ok or _matches_any(END_TIME_PATTERNS, parsed.actions["revert_at"])
     end_ok = end_ok or _matches_any(END_TIME_PATTERNS, text)
     revert_ok = revert_ok or _matches_any(REVERT_PATTERNS, text)
     return end_ok, revert_ok
@@ -84,8 +110,10 @@ def score_preservation(handoffs: list[dict[str, Any]]) -> list[HopPreservation]:
 
 
 def first_loss(hops: list[HopPreservation]) -> int | None:
-    """Index of the first handoff where the constraint is no longer complete."""
-    for h in hops:
-        if not h.preserved:
-            return h.hop
-    return None
+    """First handoff where no revert is planned any more."""
+    return next((h.hop for h in hops if h.state == LOST), None)
+
+
+def first_change(hops: list[HopPreservation]) -> int | None:
+    """First handoff where the constraint is no longer intact (altered or lost)."""
+    return next((h.hop for h in hops if h.state != PRESERVED), None)

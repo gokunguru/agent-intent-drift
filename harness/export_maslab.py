@@ -8,7 +8,8 @@ only what the public record needs:
                     next agent received it verbatim
   meta.json         run metadata, the condition's public record (version,
                     SHA-256, length) and the SHA-256 of the raw trace
-  device_state.json copied as is, if given
+  device_state.json R1 state built from the implementer's ACTIONS block, or
+                    copied as is if --device-state is given
 
 Usage:
     python -m harness.export_maslab traces/run-001.jsonl runs/run-001 \\
@@ -28,9 +29,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from harness.apply_actions import ACTIONS_AGENT, InvalidActions, device_from_actions
 from harness.conditions import AGENTS, CONDITIONS
 from harness.trajectory import write_trajectory
 from integrations.aurora import ReceiverCondition
+from scoring.blocks import parse_output
 
 ROOT = Path(__file__).resolve().parent.parent
 FINAL_RECIPIENT = "next_shift"
@@ -107,6 +110,7 @@ def export_run(
     condition_version: str | None = None,
     device_state: str | Path | None = None,
     scenario_path: str | Path = ROOT / "scenario" / "change_request.json",
+    baseline_path: str | Path = ROOT / "scenario" / "r1_baseline.json",
     agents: list[str] = AGENTS,
 ) -> dict[str, Any]:
     if condition not in CONDITIONS:
@@ -138,11 +142,27 @@ def export_run(
         # The condition must never reach the public files.
         private.assert_not_in(json.dumps(handoffs, ensure_ascii=False), json.dumps(meta))
 
+    # End state: from the implementer's ACTIONS block, applied to the simulator.
+    device = None
+    if not device_state and ACTIONS_AGENT in io:
+        parsed = parse_output(io[ACTIONS_AGENT]["output"] or "")
+        if parsed.actions:
+            try:
+                baseline = json.loads(Path(baseline_path).read_text())
+                device = device_from_actions(parsed.actions, scenario, baseline)
+                meta["implementer_actions"] = parsed.actions
+            except InvalidActions as exc:
+                meta["implementer_actions"] = {"error": str(exc), **parsed.actions}
+        else:
+            meta["implementer_actions"] = {"error": parsed.actions_error or "no ACTIONS block"}
+
     out_dir.mkdir(parents=True, exist_ok=True)
     write_trajectory(out_dir / "trajectory.jsonl", handoffs)
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
     if device_state:
         shutil.copyfile(device_state, out_dir / "device_state.json")
+    elif device is not None:
+        (out_dir / "device_state.json").write_text(json.dumps(device.to_dict(), indent=2) + "\n")
     return meta
 
 
