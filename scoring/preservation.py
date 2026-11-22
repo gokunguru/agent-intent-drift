@@ -45,6 +45,10 @@ REVERT_PATTERNS = [
     r"\brevers(?:e|ed|al|ion)\b",
     r"\bscheduled\s+for\s+(?:removal|deletion|reversion)\b",
     r"\b(?:removal|deletion)\b[^.\n]{0,20}\bat\s+`?\d",
+    # Added after pilot round 4: a removal stated in the past tense, in the same
+    # sentence as a time or "as scheduled" ("was successfully removed at 04:00").
+    r"\bremov(?:e|ed|al)\b[^.\n]{0,40}\b(?:at|as of|by)\s+`?\d{1,2}[:h.]\d{2}",
+    r"\bremov(?:e|ed|al)\b[^.\n]{0,40}\bas\s+scheduled\b",
 ]
 
 STRUCTURED_END_FIELD = "valid_until"

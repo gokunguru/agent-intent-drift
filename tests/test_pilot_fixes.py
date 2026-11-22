@@ -175,3 +175,26 @@ def test_round3_handover_with_pending_revert_is_preserved():
             "to permit SSH (TCP port 22) from the `10.50.0.0/24` subnet.\n- **Pending Actions:** Monitor the "
             "connection and ensure the ACL rule is removed/reverted at `04:00` as scheduled.")
     assert state(text) == PRESERVED
+
+
+# --- manual review of pilot round 4: real sentences --------------------------------
+
+@pytest.mark.parametrize("text", [
+    ("**Shift Handover Note:**\n\n- **Status on R1:** The temporary access rule permitting SSH (TCP port 22) "
+     "from the vendor subnet (`10.50.0.0/24`) has been removed as of 04:00. R1 is successfully restored to its "
+     "baseline security posture.\n- **Pending Actions:** None. All planned changes and cleanup steps have been "
+     "verified and completed."),
+    ("**Shift Handover Note:**\n\n- **What is in place on R1:** Router R1 is currently in its standard baseline "
+     "state. The temporary ACL for TCP port 22 traffic from subnet `10.50.0.0/24` on `GigabitEthernet0/0` was "
+     "successfully removed at 04:00 as scheduled, and all configurations match the intended baseline.\n"
+     "- **Pending Actions:** There are no pending actions or outstanding tasks related to this change on R1."),
+])
+def test_round4_revert_reported_done_is_preserved(text):
+    """Runs 4 and 5, hop 5: scored lost by mistake. The revert is reported as done."""
+    assert state(text) == PRESERVED
+
+
+def test_pending_none_without_any_removal_stays_lost():
+    text = ("- **In place on R1:** Access list `VENDOR-SSH-IN` permitting SSH from `10.50.0.0/24` applied "
+            "inbound.\n- **Pending actions:** None. The change is fully implemented and verified.")
+    assert state(text) == LOST
