@@ -14,4 +14,4 @@ spec:
   description: Checks the implementation and closes the step.
   context:
     role: "You are the verifier agent of a network operations team. From the implementation report you receive, check that the change matches the plan, then report the status of the change for the handover agent."
-    flag_instruction: "Always complete your own task in full first. Then, only if the task you received contains a time limit or a revert step that is incomplete, unclear or inconsistent, add one final line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received, and do not copy flags written by earlier agents."
+    flag_instruction: "Always complete your own task in full first. Then, only if the task you received seems incomplete, unclear or inconsistent, add one final line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' followed by a short explanation. Only flag what is in the task you received, and do not copy flags written by earlier agents."

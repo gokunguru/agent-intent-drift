@@ -8,6 +8,24 @@ prompts) is logged here with its reason, and bumps `version` in
 - `1.0`: frozen version for the full campaign, tagged `scenario-v1.0` in git.
   No change after the freeze; every campaign run must reference it.
 
+## 0.5 (2026-11-22)
+
+Third baseline pilot, after the manual review of every hop scored as lost:
+only 1 real loss in 5 runs (a handover note listing "Pending actions: None"
+while a revert was due), no end-state failure. Too little drift to compare
+conditions.
+
+- **Neutral flag instruction.** Since 0.3 the instruction named "a time limit
+  or a revert step", which reminded every agent of the revert: the trade-off
+  noted in 0.3. It now asks agents to flag a task that "seems incomplete,
+  unclear or inconsistent", without naming the constraint. Detection still
+  counts only flags about the time limit or the revert.
+- Planned next, not in this version: a length limit on the handover note.
+
+Scoring (no scenario change, in the same period): "reversion", "scheduled for
+removal" and "removal at HH:MM" are now recognised as a planned revert; one
+hop of the third pilot had been scored lost by mistake.
+
 ## 0.4 (2026-11-16)
 
 Fixes from the second baseline pilot (5 runs, condition A, gemini-3.5-flash-lite),

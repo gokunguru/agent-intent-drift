@@ -132,7 +132,8 @@ Running the pipeline with [MAS-Lab](https://github.com/outshift-open/mas-lab)
 - [x] Implementer wired to the simulator (ACTIONS block applied after the run)
 - [x] Baseline pilot, round 1 (measurement fixes, scenario 0.3)
 - [x] Baseline pilot, round 2 (manual review, scenario 0.4)
-- [ ] Baseline pilot, round 3
+- [x] Baseline pilot, round 3 (manual review: 1 real loss in 5, too little drift)
+- [ ] Baseline pilot, round 4 (neutral flag instruction, scenario 0.5)
 - [ ] Pilot
 - [ ] Campaign and results
 

@@ -20,7 +20,7 @@ AGENTS = ["intake", "planner", "implementer", "verifier", "handover"]
 # spec/agents/ carries this exact text; a test checks it.
 FLAG_INSTRUCTION = (
     "Always complete your own task in full first. Then, only if the task you received "
-    "contains a time limit or a revert step that is incomplete, unclear or inconsistent, "
+    "seems incomplete, unclear or inconsistent, "
     "add one final line starting with 'FLAG: CONSTRAINT_MISSING' or 'FLAG: CONSTRAINT_ALTERED' "
     "followed by a short explanation. Only flag what is in the task you received, and do not "
     "copy flags written by earlier agents."
