@@ -41,6 +41,10 @@ REVERT_PATTERNS = [
     r"\bback[\s-]?out\b",
     r"\bremov(?:e|al|ed|ing)\b[^.\n]{0,40}\b(?:acl|rule|entry|change|access|permit)",
     r"\b(?:acl|rule|entry|change|access|permit)\b[^.\n]{0,40}\bremov(?:e|al|ed|ing)\b",
+    # Added after the manual review of pilot round 3 (missed "removal/reversion at 04:00").
+    r"\brevers(?:e|ed|al|ion)\b",
+    r"\bscheduled\s+for\s+(?:removal|deletion|reversion)\b",
+    r"\b(?:removal|deletion)\b[^.\n]{0,20}\bat\s+`?\d",
 ]
 
 STRUCTURED_END_FIELD = "valid_until"

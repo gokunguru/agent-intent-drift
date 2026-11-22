@@ -149,3 +149,29 @@ def test_early_revert_is_within_window():
     facts = check_actions({"permit_source": "10.50.0.0/24", "apply_at": "02:15", "revert_at": "03:45"}, SCENARIO)
     assert facts == {"change_matches_request": True, "applied_within_window": True,
                      "revert_planned": True, "revert_within_window": True}
+
+
+# --- manual review of pilot round 3: real sentences --------------------------------
+
+def test_round3_verifier_reversion_is_preserved():
+    """Run 3, hop 4: was scored lost by mistake."""
+    text = ("**Verification Report**\n\n- **Change Check:** The implementation report matches the plan. "
+            "The actions state that the Access Control List (ACL) on router R1 is updated to permit SSH "
+            "(TCP port 22) from `10.50.0.0/24` at `02:00` and scheduled for removal/reversion at `04:00`.\n"
+            "- **Status:** Successful. The applied changes align with the specified operational plan.")
+    assert state(text) == PRESERVED
+
+
+def test_round3_handover_without_pending_revert_is_lost():
+    """Run 1, hop 5: the failure this experiment targets, at text level."""
+    text = ("**Handover Note:**\n\n- **In place on R1:** Access list `VENDOR-SSH-IN` permitting SSH traffic "
+            "(`eq 22`) from the vendor subnet `10.50.0.0/24` applied inbound on `GigabitEthernet0/0`.\n"
+            "- **Pending actions:** None. The change is fully implemented and verified.")
+    assert state(text) == LOST
+
+
+def test_round3_handover_with_pending_revert_is_preserved():
+    text = ("**Shift Handover Note**\n\n- **In Place on R1:** The Access Control List (ACL) has been updated "
+            "to permit SSH (TCP port 22) from the `10.50.0.0/24` subnet.\n- **Pending Actions:** Monitor the "
+            "connection and ensure the ACL rule is removed/reverted at `04:00` as scheduled.")
+    assert state(text) == PRESERVED
